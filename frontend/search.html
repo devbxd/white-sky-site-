@@ -342,8 +342,7 @@
         const arrTime = formatTime(lastSeg.arrival.at);
         const dur     = formatDuration(f.itineraries[0].duration);
         const stops   = f.itineraries[0].segments.length - 1;
-        const priceEUR = parseFloat(f.price.total);
-        const priceKWD = (priceEUR * 0.34).toFixed(3);
+        const priceKWD = parseFloat(f.price.total).toFixed(0);
         const curr     = 'KWD';
         const totalPax = parseInt(params.pax) + parseInt(params.children || 0);
         const paxLabel = parseInt(params.children) > 0
@@ -412,3 +411,4 @@
   </script>
 </body>
 </html>
+

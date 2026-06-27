@@ -30,138 +30,145 @@ body {
   overflow-x: hidden;
 }
 
-/* ═══ INTRO ANIMATION ═══ */
+/* ═══ INTRO — YouTube Video Background ═══ */
 
 #intro-screen {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: linear-gradient(180deg, #0a1628 0%, #1a3a6a 45%, #4a90c8 75%, #a8d8f0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #000;
   overflow: hidden;
 }
 
-#sky-bg { position: absolute; inset: 0; }
-
-/* Nuages intro */
-.cloud {
+#video-bg {
   position: absolute;
-  background: rgba(255,255,255,0.85);
-  border-radius: 50px;
-}
-.cloud::before, .cloud::after {
-  content: '';
-  position: absolute;
-  background: rgba(255,255,255,0.85);
-  border-radius: 50%;
-}
-
-.cloud-1 { width: 180px; height: 40px; top: 30%; left: -220px; animation: cloudDrift1 4.5s ease-in-out forwards; }
-.cloud-1::before { width: 80px; height: 60px; top: -30px; left: 20px; }
-.cloud-1::after  { width: 60px; height: 50px; top: -22px; left: 70px; }
-
-.cloud-2 { width: 130px; height: 30px; top: 55%; left: -170px; animation: cloudDrift2 5s 0.3s ease-in-out forwards; }
-.cloud-2::before { width: 60px; height: 45px; top: -22px; left: 15px; }
-.cloud-2::after  { width: 45px; height: 38px; top: -17px; left: 52px; }
-
-.cloud-3 { width: 200px; height: 45px; top: 20%; right: -250px; animation: cloudDriftR1 4.2s 0.2s ease-in-out forwards; }
-.cloud-3::before { width: 90px; height: 65px; top: -32px; left: 30px; }
-.cloud-3::after  { width: 70px; height: 55px; top: -25px; left: 80px; }
-
-.cloud-4 { width: 150px; height: 35px; top: 65%; right: -200px; animation: cloudDriftR2 5.2s 0.5s ease-in-out forwards; }
-.cloud-4::before { width: 65px; height: 50px; top: -25px; left: 18px; }
-.cloud-4::after  { width: 50px; height: 42px; top: -19px; left: 58px; }
-
-@keyframes cloudDrift1  { 0%{left:-220px;opacity:0} 15%{opacity:1} 100%{left:110%;opacity:0.6} }
-@keyframes cloudDrift2  { 0%{left:-170px;opacity:0} 15%{opacity:1} 100%{left:110%;opacity:0.6} }
-@keyframes cloudDriftR1 { 0%{right:-250px;opacity:0} 15%{opacity:1} 100%{right:110%;opacity:0.6} }
-@keyframes cloudDriftR2 { 0%{right:-200px;opacity:0} 15%{opacity:1} 100%{right:110%;opacity:0.6} }
-
-/* Avion */
-#plane-wrapper {
-  position: absolute;
-  left: -160px;
-  top: 42%;
-  width: 120px;
-  animation: planeFly 2.6s cubic-bezier(0.25,0.1,0.4,1) 0.4s forwards;
-  filter: drop-shadow(0 4px 16px rgba(200,230,255,0.5));
-}
-
-#plane-svg { width: 100%; height: auto; }
-
-@keyframes planeFly {
-  0%   { left: -160px; top: 42%; opacity: 0; transform: rotate(-3deg) scale(0.8); }
-  10%  { opacity: 1; }
-  50%  { top: 40%; transform: rotate(-1deg) scale(1); }
-  85%  { left: calc(100vw - 80px); top: 38%; transform: rotate(2deg) scale(1); opacity: 1; }
-  100% { left: calc(100vw + 160px); top: 36%; transform: rotate(3deg) scale(0.9); opacity: 0; }
-}
-
-/* Traînée de condensation */
-#contrail {
-  position: absolute;
-  top: calc(42% + 20px);
-  left: 0;
-  height: 2px;
-  width: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
-  animation: contrailGrow 2.6s cubic-bezier(0.25,0.1,0.4,1) 0.4s forwards;
-}
-
-@keyframes contrailGrow {
-  0%   { width: 0; opacity: 0; }
-  20%  { opacity: 1; }
-  85%  { width: calc(100vw - 80px); opacity: 0.5; }
-  100% { width: 100vw; opacity: 0; }
-}
-
-/* Logo intro */
-#intro-logo {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  height: 0;
+  inset: 0;
   overflow: hidden;
-  animation: logoReveal 0.9s cubic-bezier(0.22,1,0.36,1) 2.8s forwards;
-  gap: 12px;
+  pointer-events: none;
 }
 
-@keyframes logoReveal {
-  0%   { height: 0; opacity: 0; }
-  100% { height: 100%; opacity: 1; }
-}
-
-.intro-white, .intro-sky {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
-  font-size: clamp(60px, 12vw, 140px);
-  letter-spacing: 0.15em;
-  line-height: 1;
+#intro-video {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+}
+
+#video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.1) 0%,
+    rgba(0,0,0,0.0) 40%,
+    rgba(0,0,0,0.35) 100%
+  );
+}
+
+#intro-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#intro-logo-3d {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  animation: logoFadeIn 1.5s ease 1s forwards;
   opacity: 0;
-  animation: wordFadeIn 0.7s ease forwards;
-}
-.intro-white { left: 50%; transform: translateX(-102%) translateY(-50%); color: white; animation-delay: 2.85s; }
-.intro-sky   { right: 50%; transform: translateX(102%) translateY(-50%); color: var(--sky-lt); animation-delay: 3s; }
-
-@keyframes wordFadeIn {
-  from { opacity: 0; letter-spacing: 0.35em; }
-  to   { opacity: 1; }
 }
 
-/* Fermeture écran intro */
-#intro-screen.closing {
-  animation: introClose 0.8s cubic-bezier(0.76,0,0.24,1) forwards;
+@keyframes logoFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes introClose {
-  0%   { clip-path: inset(0 0 0 0); opacity: 1; }
-  100% { clip-path: inset(0 0 100% 0); opacity: 0; }
+
+.il-white, .il-sky {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(56px, 10vw, 130px);
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.5);
+}
+.il-white { color: white; }
+.il-sky   { color: #a8d8ff; }
+
+#intro-tagline {
+  font-size: 13px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+  margin-top: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.8);
+  animation: logoFadeIn 1.5s ease 1.4s forwards;
+  opacity: 0;
+}
+
+#intro-book-btn {
+  margin-top: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 16px 36px;
+  border-radius: 50px;
+  text-decoration: none;
+  pointer-events: all;
+  z-index: 4;
+  animation: logoFadeIn 1.5s ease 1.8s forwards;
+  opacity: 0;
+  transition: background 0.3s, transform 0.2s;
+}
+#intro-book-btn:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-2px);
+}
+
+#skip-btn {
+  position: absolute;
+  bottom: 32px;
+  right: 32px;
+  z-index: 4;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  padding: 10px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  pointer-events: all;
+  transition: all 0.2s;
+  animation: logoFadeIn 1s ease 2.5s forwards;
+  opacity: 0;
+}
+#skip-btn:hover {
+  background: rgba(0,0,0,0.6);
+  color: white;
 }
 
 /* ═══ GLOBAL ═══ */
@@ -691,6 +698,7 @@ section { padding: 100px 40px; }
   background: var(--navy-mid);
   border-bottom: 1px solid var(--border);
   padding: 40px;
+  overflow: visible;
 }
 
 .search-form {
@@ -699,6 +707,7 @@ section { padding: 100px 40px; }
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow: visible;
 }
 
 .form-row {
@@ -1048,16 +1057,16 @@ section { padding: 100px 40px; }
 /* ═══ AUTOCOMPLETE ═══ */
 .autocomplete-list {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 2px);
   left: 0; right: 0;
-  background: var(--navy-mid);
+  background: #162d47;
   border: 1px solid var(--sky);
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  z-index: 999;
+  border-radius: 8px;
+  z-index: 99999;
   display: none;
-  max-height: 240px;
+  max-height: 260px;
   overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
 .ac-item {
   display: flex;

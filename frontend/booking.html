@@ -138,9 +138,9 @@
       const pax      = parseInt(searchParams?.pax || 1);
       const children = parseInt(searchParams?.children || 0);
       const base     = parseFloat(f.price.total);
-      const baseKWD  = parseFloat((base * 0.34).toFixed(3));
-      const taxes    = parseFloat((baseKWD * 0.18).toFixed(3));
-      totalPrice     = parseFloat((baseKWD + taxes).toFixed(3));
+      const baseKWD  = parseFloat(base.toFixed(0));
+      const taxes    = parseFloat((baseKWD * 0.18).toFixed(0));
+      totalPrice     = parseFloat((baseKWD + taxes).toFixed(0));
       const paxLabel = children > 0 ? `${pax} adult(s) + ${children} child(ren)` : `×${pax}`;
 
       const depDate = new Date(seg0.departure.at).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
@@ -163,12 +163,12 @@
           <p class="summary-detail">Class: <strong>${searchParams?.cabinClass || 'ECONOMY'}</strong></p>
         </div>
         <div class="summary-price-breakdown">
-          <div class="price-line"><span>Ticket (${paxLabel})</span><strong>${baseKWD.toFixed(3)} KWD</strong></div>
-          <div class="price-line"><span>Taxes & fees</span><strong>${taxes.toFixed(3)} KWD</strong></div>
+          <div class="price-line"><span>Ticket (${paxLabel})</span><strong>${baseKWD.toFixed(0)} KWD</strong></div>
+          <div class="price-line"><span>Taxes & fees</span><strong>${taxes.toFixed(0)} KWD</strong></div>
         </div>
         <div class="price-total">
           <span>Total</span>
-          <strong>${totalPrice.toFixed(3)} <small style="font-size:16px">KWD</small></strong>
+          <strong>${totalPrice.toFixed(0)} <small style="font-size:16px">KWD</small></strong>
         </div>`;
     }
 
@@ -361,3 +361,4 @@
   </script>
 </body>
 </html>
+

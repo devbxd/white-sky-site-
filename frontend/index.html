@@ -9,34 +9,28 @@
 </head>
 <body>
 
-  <!-- INTRO ANIMATION -->
+  <!-- ═══ INTRO — Video Background ═══ -->
   <div id="intro-screen">
-    <div id="sky-bg">
-      <div class="cloud cloud-1"></div>
-      <div class="cloud cloud-2"></div>
-      <div class="cloud cloud-3"></div>
-      <div class="cloud cloud-4"></div>
+    <div id="video-bg">
+      <video id="intro-video" autoplay muted playsinline loop>
+        <source src="assets/videos/intro.mp4" type="video/mp4" />
+      </video>
     </div>
-    <div id="plane-wrapper">
-      <svg id="plane-svg" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 20 Q40 12 90 18 Q105 18 118 20 Q105 22 90 22 Q40 28 8 20Z" fill="white"/>
-        <path d="M35 20 L55 8 L70 8 L60 20 L70 32 L55 32 Z" fill="white" opacity="0.95"/>
-        <path d="M10 20 L18 14 L25 14 L22 20 L25 26 L18 26 Z" fill="white" opacity="0.9"/>
-        <path d="M10 20 L8 20 L10 10 L18 15 Z" fill="white" opacity="0.85"/>
-        <circle cx="68" cy="19" r="1.5" fill="#c8dff0" opacity="0.8"/>
-        <circle cx="75" cy="19" r="1.5" fill="#c8dff0" opacity="0.8"/>
-        <circle cx="82" cy="19" r="1.5" fill="#c8dff0" opacity="0.8"/>
-        <line x1="0" y1="20" x2="8" y2="20" stroke="white" stroke-width="0.5" opacity="0.4"/>
-      </svg>
-    </div>
-    <div id="contrail"></div>
-    <div id="intro-logo">
-      <span class="intro-white">WHITE</span>
-      <span class="intro-sky">SKY</span>
+    <!-- Dark overlay -->
+    <div id="video-overlay"></div>
+    <!-- Logo -->
+    <div id="intro-overlay">
+      <div id="intro-logo-3d">
+        <span class="il-white">WHITE</span>
+        <span class="il-sky">SKY</span>
+      </div>
+      <p id="intro-tagline">Travel Agency</p>
+      <a href="search.html" id="intro-book-btn">✈ &nbsp;Book a Flight</a>
+      <button id="skip-btn" onclick="skipIntro()">Skip intro →</button>
     </div>
   </div>
 
-  <!-- MAIN SITE -->
+  <!-- ═══ MAIN SITE ═══ -->
   <div id="main-site" class="hidden">
 
     <nav id="navbar">
@@ -52,7 +46,6 @@
       </div>
     </nav>
 
-    <!-- HERO -->
     <section id="hero">
       <div class="hero-bg-video">
         <div class="hero-gradient"></div>
@@ -62,15 +55,9 @@
       </div>
       <div class="hero-content">
         <p class="hero-eyebrow">International Flight Agency</p>
-        <h1 class="hero-title">
-          Your sky,<br/>
-          <em>our passion.</em>
-        </h1>
+        <h1 class="hero-title">Your sky,<br/><em>our passion.</em></h1>
         <p class="hero-sub">Real flights to every corner of the world, carefully booked by experts who travel for you.</p>
-        <a href="search.html" class="btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Find My Flight
-        </a>
+        <a href="search.html" class="btn-primary">✈&nbsp;&nbsp;Book a Flight</a>
       </div>
       <div class="hero-scroll-hint">
         <span>Discover</span>
@@ -78,183 +65,79 @@
       </div>
     </section>
 
-    <!-- QUICK SEARCH -->
-    <section id="quick-search">
-      <div class="qs-card">
-        <h2 class="qs-title">Quick Search</h2>
-        <form class="qs-form" onsubmit="handleQuickSearch(event)">
-          <div class="qs-row">
-            <div class="qs-field" style="position:relative">
-              <label>From</label>
-              <input type="text" id="qs-from" placeholder="City or airport" autocomplete="off" oninput="autocomplete(this,'qs-from-list')" />
-              <div class="autocomplete-list" id="qs-from-list"></div>
-              <input type="hidden" id="qs-from-code" />
-            </div>
-            <button type="button" class="swap-btn" onclick="swapCities()">⇄</button>
-            <div class="qs-field" style="position:relative">
-              <label>To</label>
-              <input type="text" id="qs-to" placeholder="City or airport" autocomplete="off" oninput="autocomplete(this,'qs-to-list')" />
-              <div class="autocomplete-list" id="qs-to-list"></div>
-              <input type="hidden" id="qs-to-code" />
-            </div>
-            <div class="qs-field qs-date">
-              <label>Departure</label>
-              <input type="date" id="qs-date" />
-            </div>
-            <div class="qs-field qs-pax">
-              <label>Passengers</label>
-              <select id="qs-pax">
-                <option value="1">1 adult</option>
-                <option value="2">2 adults</option>
-                <option value="3">3 adults</option>
-                <option value="4">4 adults</option>
-              </select>
-            </div>
-            <button type="submit" class="qs-submit">Search</button>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- DESTINATIONS -->
     <section id="destinations">
       <div class="section-header">
         <p class="section-eye">Explore</p>
         <h2>Top Destinations</h2>
       </div>
       <div class="dest-grid">
-        <div class="dest-card" onclick="searchDest('DXB','Dubai')">
-          <div class="dest-img" style="background: linear-gradient(160deg,#1a3a5c,#4a90b8)">
-            <div class="dest-skyline dubai"></div>
-          </div>
-          <div class="dest-info">
-            <h3>Dubai</h3>
-            <p>United Arab Emirates</p>
-            <span class="dest-tag">Popular</span>
-          </div>
+        <div class="dest-card" onclick="window.location.href='search.html?to=DXB&toCity=Dubai%2C%20UAE%20(DXB)&date=2026-08-01&pax=1'">
+          <div class="dest-img" style="background:linear-gradient(160deg,#1a3a5c,#4a90b8)"><div class="dest-skyline dubai"></div></div>
+          <div class="dest-info"><h3>Dubai</h3><p>United Arab Emirates</p><span class="dest-tag">Popular</span></div>
         </div>
-        <div class="dest-card" onclick="searchDest('JFK','New York')">
-          <div class="dest-img" style="background: linear-gradient(160deg,#1c2b4a,#3a6186)">
-            <div class="dest-skyline nyc"></div>
-          </div>
-          <div class="dest-info">
-            <h3>New York</h3>
-            <p>United States</p>
-            <span class="dest-tag">Fan Favorite</span>
-          </div>
+        <div class="dest-card" onclick="window.location.href='search.html?to=JFK&toCity=New%20York%2C%20United%20States%20(JFK)&date=2026-08-01&pax=1'">
+          <div class="dest-img" style="background:linear-gradient(160deg,#1c2b4a,#3a6186)"><div class="dest-skyline nyc"></div></div>
+          <div class="dest-info"><h3>New York</h3><p>United States</p><span class="dest-tag">Fan Favorite</span></div>
         </div>
-        <div class="dest-card" onclick="searchDest('BKK','Bangkok')">
-          <div class="dest-img" style="background: linear-gradient(160deg,#1a4a3a,#2d8653)">
-            <div class="dest-skyline bkk"></div>
-          </div>
-          <div class="dest-info">
-            <h3>Bangkok</h3>
-            <p>Thailand</p>
-            <span class="dest-tag">Exotic</span>
-          </div>
+        <div class="dest-card" onclick="window.location.href='search.html?to=BKK&toCity=Bangkok%2C%20Thailand%20(BKK)&date=2026-08-01&pax=1'">
+          <div class="dest-img" style="background:linear-gradient(160deg,#1a4a3a,#2d8653)"><div class="dest-skyline bkk"></div></div>
+          <div class="dest-info"><h3>Bangkok</h3><p>Thailand</p><span class="dest-tag">Exotic</span></div>
         </div>
-        <div class="dest-card" onclick="searchDest('NRT','Tokyo')">
-          <div class="dest-img" style="background: linear-gradient(160deg,#3a1a2b,#8b3a6b)">
-            <div class="dest-skyline nrt"></div>
-          </div>
-          <div class="dest-info">
-            <h3>Tokyo</h3>
-            <p>Japan</p>
-            <span class="dest-tag">Trending</span>
-          </div>
+        <div class="dest-card" onclick="window.location.href='search.html?to=NRT&toCity=Tokyo%2C%20Japan%20(NRT)&date=2026-08-01&pax=1'">
+          <div class="dest-img" style="background:linear-gradient(160deg,#3a1a2b,#8b3a6b)"><div class="dest-skyline nrt"></div></div>
+          <div class="dest-info"><h3>Tokyo</h3><p>Japan</p><span class="dest-tag">Trending</span></div>
         </div>
       </div>
     </section>
 
-    <!-- SERVICES -->
     <section id="services">
-      <div class="section-header">
-        <p class="section-eye">Our Promise</p>
-        <h2>Why White Sky?</h2>
-      </div>
+      <div class="section-header"><p class="section-eye">Our Promise</p><h2>Why White Sky?</h2></div>
       <div class="services-grid">
-        <div class="service-card">
-          <div class="service-icon">✈</div>
-          <h3>Real Tickets, Real Prices</h3>
-          <p>We access the same systems as the airlines. No fake tickets, no surprises.</p>
-        </div>
-        <div class="service-card">
-          <div class="service-icon">🛡</div>
-          <h3>Secure Payment</h3>
-          <p>All payments processed via PayPal. Your financial data never passes through our servers.</p>
-        </div>
-        <div class="service-card">
-          <div class="service-icon">📧</div>
-          <h3>Personal Confirmation</h3>
-          <p>Our team manually adds your PNR and sends it within 24 hours. Human follow-up guaranteed.</p>
-        </div>
-        <div class="service-card">
-          <div class="service-icon">🌍</div>
-          <h3>All Destinations</h3>
-          <p>Flights to over 500 airports worldwide, on all major airlines.</p>
-        </div>
+        <div class="service-card"><div class="service-icon">✈</div><h3>Real Tickets, Real Prices</h3><p>We access the same systems as the airlines. No fake tickets, no surprises.</p></div>
+        <div class="service-card"><div class="service-icon">🛡</div><h3>Secure Payment</h3><p>All payments processed via PayPal. Your financial data never passes through our servers.</p></div>
+        <div class="service-card"><div class="service-icon">📧</div><h3>Personal Confirmation</h3><p>Our team manually adds your PNR and sends it within 24 hours. Human follow-up guaranteed.</p></div>
+        <div class="service-card"><div class="service-icon">🌍</div><h3>All Destinations</h3><p>Flights to over 500 airports worldwide, on all major airlines.</p></div>
       </div>
     </section>
 
-    <!-- HOW IT WORKS -->
     <section id="how-it-works">
-      <div class="section-header">
-        <p class="section-eye">Simple & Fast</p>
-        <h2>How It Works</h2>
-      </div>
+      <div class="section-header"><p class="section-eye">Simple & Fast</p><h2>How It Works</h2></div>
       <div class="steps-row">
-        <div class="step">
-          <div class="step-num">01</div>
-          <h3>Search</h3>
-          <p>Enter your destination, travel dates and number of passengers.</p>
-        </div>
+        <div class="step"><div class="step-num">01</div><h3>Search</h3><p>Enter your destination, travel dates and number of passengers.</p></div>
         <div class="step-arrow">→</div>
-        <div class="step">
-          <div class="step-num">02</div>
-          <h3>Choose</h3>
-          <p>Select the best flight offer from available options.</p>
-        </div>
+        <div class="step"><div class="step-num">02</div><h3>Choose</h3><p>Select the best flight offer from available options.</p></div>
         <div class="step-arrow">→</div>
-        <div class="step">
-          <div class="step-num">03</div>
-          <h3>Pay</h3>
-          <p>Fill in your details and pay securely via PayPal.</p>
-        </div>
+        <div class="step"><div class="step-num">03</div><h3>Pay</h3><p>Fill in your details and pay securely via PayPal.</p></div>
         <div class="step-arrow">→</div>
-        <div class="step">
-          <div class="step-num">04</div>
-          <h3>Receive</h3>
-          <p>Your ticket with PNR is sent to your email within 24 hours.</p>
-        </div>
+        <div class="step"><div class="step-num">04</div><h3>Receive</h3><p>Your ticket with PNR is sent to your email within 24 hours.</p></div>
       </div>
     </section>
 
-    <!-- FOOTER -->
     <footer id="footer">
       <div class="footer-inner">
-        <div class="footer-logo">
-          <span>WHITE</span><span class="logo-sky">SKY</span>
-          <p>The agency that takes you further.</p>
-        </div>
-        <div class="footer-links">
-          <h4>Navigation</h4>
-          <a href="search.html">Search Flights</a>
-          <a href="#destinations">Destinations</a>
-          <a href="#services">Services</a>
-        </div>
-        <div class="footer-contact">
-          <h4>Contact</h4>
-          <p>contact@whitesky.travel</p>
-          <p>+1 (800) WHITE-SKY</p>
-        </div>
+        <div class="footer-logo"><span>WHITE</span><span class="logo-sky">SKY</span><p>The agency that takes you further.</p></div>
+        <div class="footer-links"><h4>Navigation</h4><a href="search.html">Search Flights</a><a href="#destinations">Destinations</a><a href="#services">Services</a></div>
+        <div class="footer-contact"><h4>Contact</h4><p>infos@whiteskytravelagency.com</p></div>
       </div>
-      <div class="footer-bottom">
-        <p>© 2025 White Sky Travel Agency. All rights reserved.</p>
-      </div>
+      <div class="footer-bottom"><p>© 2025 White Sky Travel Agency. All rights reserved.</p></div>
     </footer>
 
   </div>
 
   <script src="assets/main.js"></script>
+  <script>
+    function skipIntro() {
+      document.getElementById('intro-screen').style.transition = 'opacity 0.8s ease';
+      document.getElementById('intro-screen').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('intro-screen').style.display = 'none';
+        document.getElementById('main-site').classList.remove('hidden');
+        document.body.style.overflow = 'auto';
+      }, 800);
+    }
+    // Auto-close after 2 min (half the video)
+    setTimeout(skipIntro, 120000);
+  </script>
 </body>
 </html>
+

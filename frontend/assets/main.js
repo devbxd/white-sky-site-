@@ -129,6 +129,7 @@ function startIntroSequence() {
   const main  = document.getElementById('main-site');
   if (!intro || !main) return;
 
+  // Plane takeoff starts at 1s, lasts 3.2s, logo at 3.8s → total ~5.5s
   setTimeout(() => {
     intro.classList.add('closing');
     setTimeout(() => {
@@ -136,7 +137,7 @@ function startIntroSequence() {
       main.classList.remove('hidden');
       document.body.style.overflow = 'auto';
     }, 800);
-  }, 4400);
+  }, 5500);
 }
 
 // ── Autocomplete (local, instant) ──
