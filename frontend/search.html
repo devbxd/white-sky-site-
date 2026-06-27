@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search Flights — White Sky</title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span>WHITE</span><span class="logo-sky">SKY</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#destinations">Destinations</a></li>
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="search.html" class="nav-cta">New Search</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Search Flights</h1>
+    <p>Find the best flight for your journey</p>
+  </div>
+
+  <!-- SEARCH FORM -->
+  <div class="search-form-section">
+    <form class="search-form" onsubmit="searchFlights(event)">
+      <div class="form-row">
+        <div class="form-field" style="flex:0.4">
+          <label>Trip Type</label>
+          <select id="trip-type">
+            <option value="one-way">One Way</option>
+            <option value="round-trip">Round Trip</option>
+          </select>
+        </div>
+
+        <!-- FROM city -->
+        <div class="form-field" style="position:relative">
+          <label>From</label>
+          <input type="text" id="s-from" placeholder="City or airport…" autocomplete="off"
+            oninput="acSearch(this,'s-from-list','s-from-code')" required />
+          <div class="autocomplete-list" id="s-from-list"></div>
+          <input type="hidden" id="s-from-code" />
+        </div>
+
+        <!-- TO city -->
+        <div class="form-field" style="position:relative">
+          <label>To</label>
+          <input type="text" id="s-to" placeholder="City or airport…" autocomplete="off"
+            oninput="acSearch(this,'s-to-list','s-to-code')" required />
+          <div class="autocomplete-list" id="s-to-list"></div>
+          <input type="hidden" id="s-to-code" />
+        </div>
+
+        <div class="form-field">
+          <label>Departure Date</label>
+          <input type="date" id="s-date" required />
+        </div>
+        <div class="form-field" id="return-date-field" style="display:none">
+          <label>Return Date</label>
+          <input type="date" id="s-return" />
+        </div>
+        <div class="form-field" style="flex:0.4">
+          <label>Adults</label>
+          <select id="s-pax">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+          </select>
+        </div>
+        <div class="form-field" style="flex:0.4">
+          <label>Children (2-11)</label>
+          <select id="s-children">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+        <div class="form-field" style="flex:0.5">
+          <label>Class</label>
+          <select id="s-class">
+            <option value="ECONOMY">Economy</option>
+            <option value="PREMIUM_ECONOMY">Premium Economy</option>
+            <option value="BUSINESS">Business</option>
+            <option value="FIRST">First</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button type="submit" class="search-btn" id="search-btn">🔍 Search Flights</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-section" id="results-container">
+    <p style="color:var(--grey);font-size:14px">Enter your search criteria above to find available flights.</p>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3001';
+
+    // ── Local airport database ──
+    const AIRPORTS = [
+      {iata:'CDG',city:'Paris',name:'Charles de Gaulle',country:'France'},
+      {iata:'ORY',city:'Paris',name:'Orly',country:'France'},
+      {iata:'LHR',city:'London',name:'Heathrow',country:'United Kingdom'},
+      {iata:'LGW',city:'London',name:'Gatwick',country:'United Kingdom'},
+      {iata:'JFK',city:'New York',name:'John F. Kennedy',country:'United States'},
+      {iata:'EWR',city:'New York',name:'Newark Liberty',country:'United States'},
+      {iata:'LAX',city:'Los Angeles',name:'Los Angeles Intl',country:'United States'},
+      {iata:'ORD',city:'Chicago',name:"O'Hare Intl",country:'United States'},
+      {iata:'ATL',city:'Atlanta',name:'Hartsfield-Jackson',country:'United States'},
+      {iata:'MIA',city:'Miami',name:'Miami Intl',country:'United States'},
+      {iata:'SFO',city:'San Francisco',name:'San Francisco Intl',country:'United States'},
+      {iata:'BOS',city:'Boston',name:'Logan Intl',country:'United States'},
+      {iata:'DFW',city:'Dallas',name:'Dallas Fort Worth',country:'United States'},
+      {iata:'DXB',city:'Dubai',name:'Dubai Intl',country:'UAE'},
+      {iata:'AUH',city:'Abu Dhabi',name:'Zayed Intl',country:'UAE'},
+      {iata:'SHJ',city:'Sharjah',name:'Sharjah Intl',country:'UAE'},
+      {iata:'KWI',city:'Kuwait',name:'Kuwait Intl',country:'Kuwait'},
+      {iata:'DOH',city:'Doha',name:'Hamad Intl',country:'Qatar'},
+      {iata:'BAH',city:'Bahrain',name:'Bahrain Intl',country:'Bahrain'},
+      {iata:'RUH',city:'Riyadh',name:'King Khalid Intl',country:'Saudi Arabia'},
+      {iata:'JED',city:'Jeddah',name:'King Abdulaziz Intl',country:'Saudi Arabia'},
+      {iata:'MCT',city:'Muscat',name:'Muscat Intl',country:'Oman'},
+      {iata:'BEY',city:'Beirut',name:'Rafic Hariri Intl',country:'Lebanon'},
+      {iata:'AMM',city:'Amman',name:'Queen Alia Intl',country:'Jordan'},
+      {iata:'CAI',city:'Cairo',name:'Cairo Intl',country:'Egypt'},
+      {iata:'HRG',city:'Hurghada',name:'Hurghada Intl',country:'Egypt'},
+      {iata:'SSH',city:'Sharm el-Sheikh',name:'Sharm el-Sheikh Intl',country:'Egypt'},
+      {iata:'TUN',city:'Tunis',name:'Tunis Carthage',country:'Tunisia'},
+      {iata:'ALG',city:'Algiers',name:'Houari Boumediene',country:'Algeria'},
+      {iata:'CMN',city:'Casablanca',name:'Mohammed V Intl',country:'Morocco'},
+      {iata:'RAK',city:'Marrakech',name:'Menara',country:'Morocco'},
+      {iata:'FEZ',city:'Fez',name:'Fez-Saiss',country:'Morocco'},
+      {iata:'TNG',city:'Tangier',name:'Ibn Batouta',country:'Morocco'},
+      {iata:'IST',city:'Istanbul',name:'Istanbul Airport',country:'Turkey'},
+      {iata:'SAW',city:'Istanbul',name:'Sabiha Gokcen',country:'Turkey'},
+      {iata:'AYT',city:'Antalya',name:'Antalya Intl',country:'Turkey'},
+      {iata:'FRA',city:'Frankfurt',name:'Frankfurt Intl',country:'Germany'},
+      {iata:'MUC',city:'Munich',name:'Munich Intl',country:'Germany'},
+      {iata:'AMS',city:'Amsterdam',name:'Schiphol',country:'Netherlands'},
+      {iata:'MAD',city:'Madrid',name:'Adolfo Suarez Barajas',country:'Spain'},
+      {iata:'BCN',city:'Barcelona',name:'El Prat',country:'Spain'},
+      {iata:'FCO',city:'Rome',name:'Leonardo da Vinci',country:'Italy'},
+      {iata:'MXP',city:'Milan',name:'Malpensa',country:'Italy'},
+      {iata:'ZRH',city:'Zurich',name:'Zurich Airport',country:'Switzerland'},
+      {iata:'GVA',city:'Geneva',name:'Geneva Airport',country:'Switzerland'},
+      {iata:'BRU',city:'Brussels',name:'Brussels Airport',country:'Belgium'},
+      {iata:'VIE',city:'Vienna',name:'Vienna Intl',country:'Austria'},
+      {iata:'ATH',city:'Athens',name:'Eleftherios Venizelos',country:'Greece'},
+      {iata:'LIS',city:'Lisbon',name:'Humberto Delgado',country:'Portugal'},
+      {iata:'CPH',city:'Copenhagen',name:'Copenhagen Airport',country:'Denmark'},
+      {iata:'ARN',city:'Stockholm',name:'Arlanda',country:'Sweden'},
+      {iata:'WAW',city:'Warsaw',name:'Chopin Airport',country:'Poland'},
+      {iata:'NRT',city:'Tokyo',name:'Narita Intl',country:'Japan'},
+      {iata:'HND',city:'Tokyo',name:'Haneda',country:'Japan'},
+      {iata:'ICN',city:'Seoul',name:'Incheon Intl',country:'South Korea'},
+      {iata:'PEK',city:'Beijing',name:'Capital Intl',country:'China'},
+      {iata:'PVG',city:'Shanghai',name:'Pudong Intl',country:'China'},
+      {iata:'HKG',city:'Hong Kong',name:'Hong Kong Intl',country:'Hong Kong'},
+      {iata:'SIN',city:'Singapore',name:'Changi Airport',country:'Singapore'},
+      {iata:'BKK',city:'Bangkok',name:'Suvarnabhumi',country:'Thailand'},
+      {iata:'KUL',city:'Kuala Lumpur',name:'KLIA',country:'Malaysia'},
+      {iata:'DEL',city:'Delhi',name:'Indira Gandhi Intl',country:'India'},
+      {iata:'BOM',city:'Mumbai',name:'Chhatrapati Shivaji',country:'India'},
+      {iata:'SYD',city:'Sydney',name:'Kingsford Smith',country:'Australia'},
+      {iata:'MEL',city:'Melbourne',name:'Tullamarine',country:'Australia'},
+      {iata:'YYZ',city:'Toronto',name:'Pearson Intl',country:'Canada'},
+      {iata:'YVR',city:'Vancouver',name:'Vancouver Intl',country:'Canada'},
+      {iata:'GRU',city:'Sao Paulo',name:'Guarulhos Intl',country:'Brazil'},
+      {iata:'EZE',city:'Buenos Aires',name:'Ministro Pistarini',country:'Argentina'},
+      {iata:'MEX',city:'Mexico City',name:'Benito Juarez Intl',country:'Mexico'},
+      {iata:'CUN',city:'Cancun',name:'Cancun Intl',country:'Mexico'},
+      {iata:'JNB',city:'Johannesburg',name:'OR Tambo Intl',country:'South Africa'},
+      {iata:'CPT',city:'Cape Town',name:'Cape Town Intl',country:'South Africa'},
+      {iata:'TLV',city:'Tel Aviv',name:'Ben Gurion',country:'Israel'},
+      {iata:'MRU',city:'Mauritius',name:'Sir Seewoosagur Ramgoolam',country:'Mauritius'},
+      {iata:'ADD',city:'Addis Ababa',name:'Bole Intl',country:'Ethiopia'},
+    ];
+
+    function searchAirports(query) {
+      const q = query.toLowerCase().trim();
+      if (q.length < 2) return [];
+      return AIRPORTS.filter(a =>
+        a.city.toLowerCase().includes(q) ||
+        a.iata.toLowerCase().startsWith(q) ||
+        a.country.toLowerCase().includes(q) ||
+        a.name.toLowerCase().includes(q)
+      ).slice(0, 6);
+    }
+
+    // ── Init from URL params ──
+    document.addEventListener('DOMContentLoaded', () => {
+      const p = new URLSearchParams(window.location.search);
+
+      if (p.get('fromCity')) document.getElementById('s-from').value = p.get('fromCity');
+      if (p.get('from'))     document.getElementById('s-from-code').value = p.get('from');
+      if (p.get('toCity'))   document.getElementById('s-to').value = p.get('toCity');
+      if (p.get('to'))       document.getElementById('s-to-code').value = p.get('to');
+      if (p.get('date'))     document.getElementById('s-date').value = p.get('date');
+      if (p.get('pax'))      document.getElementById('s-pax').value = p.get('pax');
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const minDate = tomorrow.toISOString().split('T')[0];
+      document.getElementById('s-date').min   = minDate;
+      document.getElementById('s-return').min = minDate;
+
+      document.getElementById('trip-type').addEventListener('change', e => {
+        document.getElementById('return-date-field').style.display =
+          e.target.value === 'round-trip' ? 'flex' : 'none';
+      });
+
+      document.addEventListener('click', e => {
+        document.querySelectorAll('.autocomplete-list').forEach(l => {
+          if (!l.contains(e.target)) l.style.display = 'none';
+        });
+      });
+
+      if (p.get('from') && p.get('to') && p.get('date')) searchFlights();
+    });
+
+    // ── Autocomplete (local, instant) ──
+    function acSearch(input, listId, codeId) {
+      const query   = input.value.trim();
+      const list    = document.getElementById(listId);
+      const results = searchAirports(query);
+
+      if (!results.length) { list.innerHTML = ''; list.style.display = 'none'; return; }
+
+      list.innerHTML = results.map(a => `
+        <div class="ac-item" onclick="pickAirport('${a.iata}','${a.city}, ${a.country} (${a.iata})','${input.id}','${listId}','${codeId}')">
+          <span class="ac-iata">${a.iata}</span>
+          <span class="ac-name">${a.city} — ${a.name}, ${a.country}</span>
+        </div>`).join('');
+      list.style.display = 'block';
+    }
+
+    function pickAirport(iata, label, inputId, listId, codeId) {
+      document.getElementById(inputId).value = label;
+      document.getElementById(codeId).value  = iata;
+      document.getElementById(listId).style.display = 'none';
+    }
+
+    // ── Search flights ──
+    async function searchFlights(e) {
+      if (e) e.preventDefault();
+
+      const fromCode = document.getElementById('s-from-code').value.trim().toUpperCase();
+      const toCode   = document.getElementById('s-to-code').value.trim().toUpperCase();
+      const date     = document.getElementById('s-date').value;
+      const pax      = document.getElementById('s-pax').value;
+      const children = document.getElementById('s-children').value;
+      const cabinClass  = document.getElementById('s-class').value;
+      const tripType    = document.getElementById('trip-type').value;
+      const returnDate  = document.getElementById('s-return').value;
+      const fromCity    = document.getElementById('s-from').value;
+      const toCity      = document.getElementById('s-to').value;
+
+      if (!fromCode || !toCode) {
+        showToast('Please select cities from the dropdown suggestions.', 'error');
+        return;
+      }
+      if (!date) {
+        showToast('Please select a departure date.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('search-btn');
+      btn.disabled = true;
+      btn.textContent = 'Searching…';
+
+      const container = document.getElementById('results-container');
+      container.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Searching for the best available flights…</p>
+        </div>`;
+
+      try {
+        const params = new URLSearchParams({
+          from: fromCode, to: toCode, date, adults: pax, children, cabinClass,
+          ...(tripType === 'round-trip' && returnDate ? { returnDate } : {})
+        });
+
+        const res  = await fetch(`${API}/api/flights?${params}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Server error');
+
+        renderResults(data.flights, { from: fromCode, to: toCode, fromCity, toCity, date, pax, children, cabinClass });
+      } catch (err) {
+        container.innerHTML = `
+          <div class="no-results">
+            <p style="font-size:32px;margin-bottom:16px">✈️</p>
+            <p style="margin-bottom:8px">No flights found or service temporarily unavailable.</p>
+            <p style="font-size:12px;color:var(--grey)">${err.message}</p>
+          </div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Search Flights';
+      }
+    }
+
+    // ── Render results ──
+    function renderResults(flights, params) {
+      const container = document.getElementById('results-container');
+
+      if (!flights || !flights.length) {
+        container.innerHTML = `
+          <div class="no-results">
+            <p style="font-size:32px;margin-bottom:16px">😔</p>
+            <p>No flights available for this route on these dates.</p>
+            <p style="font-size:13px;color:var(--grey);margin-top:8px">Try different dates or nearby airports.</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <h2 class="results-header">${flights.length} flight(s) found — ${params.fromCity || params.from} → ${params.toCity || params.to}</h2>`;
+
+      flights.forEach(f => {
+        const seg0    = f.itineraries[0].segments[0];
+        const lastSeg = f.itineraries[0].segments.at(-1);
+        const depTime = formatTime(seg0.departure.at);
+        const arrTime = formatTime(lastSeg.arrival.at);
+        const dur     = formatDuration(f.itineraries[0].duration);
+        const stops   = f.itineraries[0].segments.length - 1;
+        const priceEUR = parseFloat(f.price.total);
+        const priceKWD = (priceEUR * 0.34).toFixed(3);
+        const curr     = 'KWD';
+        const totalPax = parseInt(params.pax) + parseInt(params.children || 0);
+        const paxLabel = parseInt(params.children) > 0
+          ? `${params.pax} adult(s) · ${params.children} child(ren)`
+          : `${params.pax} adult(s)`;
+
+        const card = document.createElement('div');
+        card.className = 'flight-card';
+        card.innerHTML = `
+          <div>
+            <div class="flight-time">${depTime}</div>
+            <div class="flight-airport">${seg0.departure.iataCode}</div>
+            <div class="flight-city">${formatDate(seg0.departure.at)}</div>
+          </div>
+          <div class="flight-duration-block">
+            <div class="flight-line">
+              <div class="flight-line-dot"></div>
+              <div class="flight-line-bar"></div>
+              <span>✈</span>
+              <div class="flight-line-bar" style="background:linear-gradient(90deg,rgba(91,164,212,0.3),var(--sky))"></div>
+              <div class="flight-line-dot"></div>
+            </div>
+            <div class="flight-duration">${dur}</div>
+            <div class="flight-stops">${stops === 0 ? 'Nonstop' : stops + ' stop(s)'}</div>
+            <div class="airline-badge">${seg0.carrierCode} · ${seg0.number}</div>
+          </div>
+          <div>
+            <div class="flight-time">${arrTime}</div>
+            <div class="flight-airport">${lastSeg.arrival.iataCode}</div>
+            <div class="flight-city">${formatDate(lastSeg.arrival.at)}</div>
+          </div>
+          <div class="flight-price-block">
+            <div class="flight-price">${priceKWD} <small style="font-size:16px">${curr}</small></div>
+            <div class="flight-price-sub">${paxLabel}</div>
+            <button class="select-btn" onclick='selectFlight(${JSON.stringify(f).replace(/'/g,"&#39;")}, ${JSON.stringify(params).replace(/'/g,"&#39;")})'>
+              Select this flight →
+            </button>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function selectFlight(flight, params) {
+      sessionStorage.setItem('selectedFlight', JSON.stringify(flight));
+      sessionStorage.setItem('searchParams',   JSON.stringify(params));
+      window.location.href = 'booking.html';
+    }
+
+    function formatTime(d) { return new Date(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); }
+    function formatDate(d) { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+    function formatDuration(iso) {
+      const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+      return `${m[1] || 0}h ${(m[2] || '0').padStart(2,'0')}m`;
+    }
+    function showToast(msg, type = 'info') {
+      let t = document.querySelector('.toast');
+      if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+      t.textContent = msg; t.className = `toast ${type}`;
+      requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+      setTimeout(() => t.classList.remove('show'), 4000);
+    }
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      if (nav) nav.style.background = window.scrollY > 50 ? 'rgba(13,31,53,0.98)' : 'rgba(13,31,53,0.85)';
+    });
+  </script>
+</body>
+</html>

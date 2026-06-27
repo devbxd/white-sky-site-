@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking — White Sky</title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://www.paypal.com/sdk/js?client-id=AR3G23o63kQyKaskntXPHUgOnRQ_Ca4Pdc4kWgzgsSFntB7wUYZHNPdvTvybK2LiHYeS5kPT9-fReeRu&currency=USD"></script>
+</head>
+<body>
+
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span>WHITE</span><span class="logo-sky">SKY</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="search.html">← Back to results</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Complete your booking</h1>
+    <p>Fill in your passenger details and proceed to payment</p>
+  </div>
+
+  <div class="booking-layout" id="booking-layout">
+
+    <div class="booking-form-card">
+      <h2>Passenger Information</h2>
+      <div id="passengers-forms"></div>
+
+      <p class="form-section-title">Contact Details</p>
+      <div class="booking-field">
+        <label>Email *</label>
+        <input type="email" id="contact-email" placeholder="your@email.com" required />
+      </div>
+      <div class="booking-fields-2">
+        <div class="booking-field">
+          <label>Phone *</label>
+          <input type="tel" id="contact-phone" placeholder="+965 XXXX XXXX" required />
+        </div>
+        <div class="booking-field">
+          <label>Country of residence</label>
+          <select id="contact-country">
+            <option value="KW">Kuwait</option>
+            <option value="US">United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="FR">France</option>
+            <option value="LB">Lebanon</option>
+            <option value="MA">Morocco</option>
+            <option value="EG">Egypt</option>
+            <option value="SA">Saudi Arabia</option>
+            <option value="AE">UAE</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="form-section-title">Special Requests (optional)</p>
+      <div class="booking-field">
+        <label>Remarks / special requests</label>
+        <textarea id="special-requests" rows="3"
+          style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;padding:13px 15px;color:var(--white);font-size:14px;font-family:'Inter',sans-serif;outline:none;resize:vertical;transition:border-color 0.2s"
+          placeholder="Special meal, window seat, special assistance…"></textarea>
+      </div>
+
+      <div style="margin-top:24px;padding:16px;background:rgba(91,164,212,0.07);border:1px solid rgba(91,164,212,0.2);border-radius:8px">
+        <p style="font-size:12px;color:var(--sky-lt);line-height:1.6">
+          ℹ️ After payment, you will receive a confirmation email with your flight details.
+          Our team will send you your <strong>PNR number</strong> within <strong>24 business hours</strong>.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="booking-summary">
+        <h2>Your Flight</h2>
+        <div id="flight-summary">
+          <p style="color:var(--grey);font-size:14px">Loading selected flight…</p>
+        </div>
+      </div>
+      <div class="booking-summary" style="margin-top:16px">
+        <h2>Payment</h2>
+        <div id="paypal-button-container"></div>
+        <button onclick="simulatePayment()" style="width:100%;background:#27ae60;border:none;border-radius:8px;color:white;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;padding:14px;cursor:pointer;margin-top:12px;transition:background 0.2s" onmouseover="this.style.background='#2ecc71'" onmouseout="this.style.background='#27ae60'">
+          🧪 Test Mode — Simulate Payment
+        </button>
+        <div class="secure-note">🔒 Secure payment via PayPal</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="confirm-page hidden" id="confirm-page">
+    <div class="confirm-card">
+      <div class="confirm-icon">✅</div>
+      <h1>Booking Confirmed!</h1>
+      <p>
+        Thank you for your trust. A confirmation email has been sent to
+        <strong id="confirm-email"></strong>.<br/><br/>
+        Our team will send you your <strong>booking reference (PNR)</strong>
+        within <strong>24 business hours</strong>.<br/><br/>
+        Any questions? <strong>infos@whiteskytravelagency.com</strong>
+      </p>
+      <a href="index.html" style="display:inline-block;margin-top:32px;color:var(--sky-lt);text-decoration:none;font-size:14px">← Back to home</a>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3001';
+    let selectedFlight = null;
+    let searchParams   = null;
+    let totalPrice     = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      selectedFlight = JSON.parse(sessionStorage.getItem('selectedFlight') || 'null');
+      searchParams   = JSON.parse(sessionStorage.getItem('searchParams')   || 'null');
+
+      if (!selectedFlight) { window.location.href = 'search.html'; return; }
+
+      buildFlightSummary();
+      buildPassengerForms();
+      initPayPal();
+
+      window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (nav) nav.style.background = window.scrollY > 50 ? 'rgba(13,31,53,0.98)' : 'rgba(13,31,53,0.85)';
+      });
+    });
+
+    function buildFlightSummary() {
+      const f        = selectedFlight;
+      const seg0     = f.itineraries[0].segments[0];
+      const last     = f.itineraries[0].segments.at(-1);
+      const pax      = parseInt(searchParams?.pax || 1);
+      const children = parseInt(searchParams?.children || 0);
+      const base     = parseFloat(f.price.total);
+      const baseKWD  = parseFloat((base * 0.34).toFixed(3));
+      const taxes    = parseFloat((baseKWD * 0.18).toFixed(3));
+      totalPrice     = parseFloat((baseKWD + taxes).toFixed(3));
+      const paxLabel = children > 0 ? `${pax} adult(s) + ${children} child(ren)` : `×${pax}`;
+
+      const depDate = new Date(seg0.departure.at).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      const depTime = new Date(seg0.departure.at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+      const arrTime = new Date(last.arrival.at).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+      const stops   = f.itineraries[0].segments.length - 1;
+      const dur     = formatDuration(f.itineraries[0].duration);
+
+      document.getElementById('flight-summary').innerHTML = `
+        <div class="summary-flight">
+          <div class="summary-route">
+            <span class="summary-airport">${seg0.departure.iataCode}</span>
+            <span class="summary-arrow">→</span>
+            <span class="summary-airport">${last.arrival.iataCode}</span>
+          </div>
+          <p class="summary-detail"><strong>${depDate}</strong></p>
+          <p class="summary-detail">Departure ${depTime} → Arrival ${arrTime}</p>
+          <p class="summary-detail">Airline: <strong>${seg0.carrierCode} ${seg0.number}</strong></p>
+          <p class="summary-detail">Duration: <strong>${dur}</strong> · ${stops === 0 ? 'Nonstop' : stops + ' stop(s)'}</p>
+          <p class="summary-detail">Class: <strong>${searchParams?.cabinClass || 'ECONOMY'}</strong></p>
+        </div>
+        <div class="summary-price-breakdown">
+          <div class="price-line"><span>Ticket (${paxLabel})</span><strong>${baseKWD.toFixed(3)} KWD</strong></div>
+          <div class="price-line"><span>Taxes & fees</span><strong>${taxes.toFixed(3)} KWD</strong></div>
+        </div>
+        <div class="price-total">
+          <span>Total</span>
+          <strong>${totalPrice.toFixed(3)} <small style="font-size:16px">KWD</small></strong>
+        </div>`;
+    }
+
+    function buildPassengerForms() {
+      const pax      = parseInt(searchParams?.pax || 1);
+      const children = parseInt(searchParams?.children || 0);
+      const container = document.getElementById('passengers-forms');
+      container.innerHTML = '';
+
+      for (let i = 0; i < pax; i++) {
+        const label = pax === 1 && children === 0 ? 'Passenger' : `Adult ${i + 1}`;
+        container.innerHTML += passengerBlock(label, `a${i}`);
+      }
+      for (let i = 0; i < children; i++) {
+        container.innerHTML += passengerBlock(`Child ${i + 1}`, `c${i}`);
+      }
+    }
+
+    function passengerBlock(label, idx) {
+      return `
+        <p class="form-section-title">${label}</p>
+        <div class="booking-fields-2">
+          <div class="booking-field">
+            <label>First Name *</label>
+            <input type="text" class="p-firstname" data-idx="${idx}" placeholder="John" required />
+          </div>
+          <div class="booking-field">
+            <label>Last Name *</label>
+            <input type="text" class="p-lastname" data-idx="${idx}" placeholder="SMITH" style="text-transform:uppercase" required />
+          </div>
+        </div>
+        <div class="booking-fields-2">
+          <div class="booking-field">
+            <label>Date of Birth *</label>
+            <input type="date" class="p-dob" data-idx="${idx}" required />
+          </div>
+          <div class="booking-field">
+            <label>Nationality *</label>
+            <select class="p-nationality" data-idx="${idx}">
+              <option value="KW">Kuwaiti</option>
+              <option value="US">American</option>
+              <option value="GB">British</option>
+              <option value="FR">French</option>
+              <option value="LB">Lebanese</option>
+              <option value="MA">Moroccan</option>
+              <option value="EG">Egyptian</option>
+              <option value="SA">Saudi</option>
+              <option value="AE">Emirati</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="booking-fields-2">
+          <div class="booking-field">
+            <label>Passport Number *</label>
+            <input type="text" class="p-passport" data-idx="${idx}" placeholder="AB123456" required />
+          </div>
+          <div class="booking-field">
+            <label>Passport Expiry *</label>
+            <input type="date" class="p-passport-exp" data-idx="${idx}" required />
+          </div>
+        </div>`;
+    }
+
+    function collectFormData() {
+      const pax      = parseInt(searchParams?.pax || 1);
+      const children = parseInt(searchParams?.children || 0);
+      const passengers = [];
+
+      const allIdx = [
+        ...Array.from({length: pax},      (_, i) => ({ idx: `a${i}`, type: 'ADT' })),
+        ...Array.from({length: children}, (_, i) => ({ idx: `c${i}`, type: 'CHD' }))
+      ];
+
+      for (const { idx, type } of allIdx) {
+        const fn  = document.querySelector(`.p-firstname[data-idx="${idx}"]`)?.value.trim();
+        const ln  = document.querySelector(`.p-lastname[data-idx="${idx}"]`)?.value.trim();
+        const dob = document.querySelector(`.p-dob[data-idx="${idx}"]`)?.value;
+        const nat = document.querySelector(`.p-nationality[data-idx="${idx}"]`)?.value;
+        const pp  = document.querySelector(`.p-passport[data-idx="${idx}"]`)?.value.trim();
+        const ppe = document.querySelector(`.p-passport-exp[data-idx="${idx}"]`)?.value;
+        if (!fn || !ln || !dob || !pp || !ppe) return null;
+        passengers.push({ firstName: fn, lastName: ln.toUpperCase(), dateOfBirth: dob, nationality: nat, passportNumber: pp, passportExpiry: ppe, type });
+      }
+
+      const email   = document.getElementById('contact-email').value.trim();
+      const phone   = document.getElementById('contact-phone').value.trim();
+      const country = document.getElementById('contact-country').value;
+      const remarks = document.getElementById('special-requests').value.trim();
+      if (!email || !phone) return null;
+      return { passengers, contact: { email, phone, country }, remarks };
+    }
+
+    // ── Simulate payment (test mode) ──
+    async function simulatePayment() {
+      const formData = collectFormData();
+      if (!formData) {
+        showToast('Please fill in all required fields.', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/api/booking`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            flight: selectedFlight,
+            searchParams,
+            formData,
+            payment: {
+              orderId:  'TEST-' + Date.now(),
+              status:   'TEST_COMPLETED',
+              amount:   totalPrice,
+              currency: 'KWD'
+            }
+          })
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error);
+        document.getElementById('booking-layout').style.display = 'none';
+        document.getElementById('confirm-page').classList.remove('hidden');
+        document.getElementById('confirm-email').textContent = formData.contact.email;
+        sessionStorage.removeItem('selectedFlight');
+        sessionStorage.removeItem('searchParams');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    // ── PayPal ──
+    function initPayPal() {
+      if (typeof paypal === 'undefined') {
+        document.getElementById('paypal-button-container').innerHTML =
+          `<p style="color:var(--grey);font-size:13px">⚠️ PayPal unavailable.</p>`;
+        return;
+      }
+      paypal.Buttons({
+        style: { layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' },
+        createOrder(data, actions) {
+          const formData = collectFormData();
+          if (!formData) {
+            showToast('Please fill in all required fields.', 'error');
+            return Promise.reject();
+          }
+          return actions.order.create({
+            purchase_units: [{
+              amount: { value: (totalPrice * 3.27).toFixed(2), currency_code: 'USD' },
+              description: `White Sky Flight — ${selectedFlight.itineraries[0].segments[0].departure.iataCode} → ${selectedFlight.itineraries[0].segments.at(-1).arrival.iataCode}`
+            }]
+          });
+        },
+        async onApprove(data, actions) {
+          const order    = await actions.order.capture();
+          const formData = collectFormData();
+          try {
+            const res = await fetch(`${API}/api/booking`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                flight: selectedFlight, searchParams, formData,
+                payment: { orderId: order.id, status: order.status, amount: totalPrice, currency: 'KWD' }
+              })
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error);
+            document.getElementById('booking-layout').style.display = 'none';
+            document.getElementById('confirm-page').classList.remove('hidden');
+            document.getElementById('confirm-email').textContent = formData.contact.email;
+            sessionStorage.removeItem('selectedFlight');
+            sessionStorage.removeItem('searchParams');
+          } catch (err) {
+            showToast('Error confirming booking. Please contact us with your PayPal receipt.', 'error');
+          }
+        },
+        onError() { showToast('Payment cancelled or declined.', 'error'); }
+      }).render('#paypal-button-container');
+    }
+
+    function formatDuration(iso) {
+      const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+      return `${m[1] || 0}h ${(m[2] || '0').padStart(2,'0')}m`;
+    }
+
+    function showToast(msg, type = 'info') {
+      let t = document.querySelector('.toast');
+      if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+      t.textContent = msg; t.className = `toast ${type}`;
+      requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+      setTimeout(() => t.classList.remove('show'), 5000);
+    }
+  </script>
+</body>
+</html>
