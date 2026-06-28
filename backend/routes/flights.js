@@ -66,8 +66,7 @@ router.get('/', async (req, res) => {
       const durH     = Math.floor(totalMin / 60);
       const durM     = totalMin % 60;
 
-      const priceUSD = f.price || 0;
-      const priceKWD = Math.round(priceUSD * 0.31); // 1 USD = 0.31 KWD
+      const priceKWD = Math.round(f.price || 0); // SerpApi returns price in KWD directly
 
       return {
         id: `SP-${i}-${from}${to}`,
