@@ -1,7 +1,121 @@
 const express = require('express');
 const router  = express.Router();
 
-const HASDATA_KEY = process.env.HASDATA_API_KEY;
+const SERPAPI_KEY = process.env.SERPAPI_KEY;
+
+// GET /api/flights?from=CDG&to=DXB&date=2026-08-01&adults=1&cabinClass=ECONOMY
+router.get('/', async (req, res) => {
+  try {
+    const { from, to, date, adults = '1', cabinClass = 'ECONOMY', returnDate } = req.query;
+
+    if (!from || !to || !date)
+      return res.status(400).json({ error: 'Missing params: from, to, date' });
+
+    console.log(`[SEARCH] ${from} → ${to} | ${date} | ${adults} pax | ${cabinClass}`);
+
+    // Class mapping: 1=Economy 2=PremiumEconomy 3=Business 4=First
+    const classMap = { ECONOMY:'1', PREMIUM_ECONOMY:'2', BUSINESS:'3', FIRST:'4' };
+    const travelClass = classMap[cabinClass] || '1';
+
+    const params = new URLSearchParams({
+      engine:         'google_flights',
+      departure_id:   from,
+      arrival_id:     to,
+      outbound_date:  date,
+      adults:         adults,
+      travel_class:   travelClass,
+      currency:       'KWD',
+      hl:             'en',
+      type:           returnDate ? '1' : '2',
+      api_key:        SERPAPI_KEY,
+      ...(returnDate ? { return_date: returnDate } : {})
+    });
+
+    const response = await fetch(`https://serpapi.com/search?${params}`);
+    const data     = await response.json();
+
+    if (data.error)
+      return res.status(400).json({ error: data.error });
+
+    const rawFlights = [
+      ...(data.best_flights   || []),
+      ...(data.other_flights  || [])
+    ];
+
+    if (!rawFlights.length)
+      return res.json({ flights: [] });
+
+    function parseTime(timeStr) {
+      if (!timeStr) return null;
+      // Format: "2026-08-01 10:40" or "2026-08-02 02:05"
+      const [datePart, timePart] = timeStr.split(' ');
+      if (!datePart || !timePart) return null;
+      const [h, m] = timePart.split(':');
+      return `${datePart}T${String(h).padStart(2,'0')}:${String(m||'00').padStart(2,'0')}:00`;
+    }
+
+    const flights = rawFlights.map((f, i) => {
+      const legs     = f.flights || [];
+      const firstLeg = legs[0];
+      const lastLeg  = legs[legs.length - 1];
+
+      const depAt = parseTime(firstLeg?.departure_airport?.time) || date + 'T08:00:00';
+      const arrAt = parseTime(lastLeg?.arrival_airport?.time)    || date + 'T12:00:00';
+
+      const totalMin = f.total_duration || 300;
+      const durH     = Math.floor(totalMin / 60);
+      const durM     = totalMin % 60;
+
+      const priceUSD = f.price || 0;
+      const priceKWD = Math.round(priceUSD * 0.31); // 1 USD = 0.31 KWD
+
+      return {
+        id: `SP-${i}-${from}${to}`,
+        itineraries: [{
+          duration: `PT${durH}H${durM}M`,
+          segments: legs.map(leg => ({
+            departure: {
+              iataCode: leg.departure_airport?.id   || from,
+              at:       parseTime(leg.departure_airport?.time) || depAt
+            },
+            arrival: {
+              iataCode: leg.arrival_airport?.id   || to,
+              at:       parseTime(leg.arrival_airport?.time) || arrAt
+            },
+            carrierCode: leg.flight_number?.split(' ')[0] || 'XX',
+            number:      leg.flight_number?.split(' ')[1] || '000',
+            carrierName: leg.airline   || 'Unknown',
+            airplane:    leg.airplane  || '',
+            travelClass: leg.travel_class || cabinClass,
+          }))
+        }],
+        price: {
+          total:    priceKWD.toString(),
+          currency: 'KWD',
+          fees:     [{ amount: Math.round(priceKWD * 0.18).toString(), type: 'TAXES' }]
+        },
+        layovers:  f.layovers  || [],
+        extensions: f.extensions || [],
+        travelerPricings: [],
+        validatingAirlineCodes: [legs[0]?.flight_number?.split(' ')[0] || 'XX']
+      };
+    });
+
+    console.log(`[SEARCH] ${flights.length} flights from SerpApi`);
+    res.json({ flights });
+
+  } catch (err) {
+    console.error('[SERPAPI ERROR]', err.message);
+    res.status(500).json({ error: 'Error fetching flights: ' + err.message });
+  }
+});
+
+// Airports autocomplete — handled client-side
+router.get('/airports', async (req, res) => {
+  res.json({ airports: [] });
+});
+
+module.exports = router;
 
 // GET /api/flights?from=CDG&to=DXB&date=2026-08-01&adults=1&cabinClass=ECONOMY
 router.get('/', async (req, res) => {
@@ -127,3 +241,4 @@ router.get('/airports', async (req, res) => {
 });
 
 module.exports = router;
+
